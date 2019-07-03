@@ -3,9 +3,9 @@ CREATE EXTENSION IF NOT EXISTS griddb_fdw;
 DO $d$
     BEGIN
         EXECUTE $$CREATE SERVER IF NOT EXISTS griddb_svr FOREIGN DATA WRAPPER griddb_fdw
-            OPTIONS (host '239.0.0.1', port '31999', clustername 'ktymCluster')$$;
+            OPTIONS (host '239.0.0.1', port '31999', clustername 'griddbfdwTestCluster')$$;
         EXECUTE $$CREATE SERVER griddb_svr2 FOREIGN DATA WRAPPER griddb_fdw
-            OPTIONS (host '239.0.0.1', port '31999', clustername 'ktymCluster')$$;
+            OPTIONS (host '239.0.0.1', port '31999', clustername 'griddbfdwTestCluster')$$;
         EXECUTE $$CREATE SERVER testserver1 FOREIGN DATA WRAPPER griddb_fdw$$;
     END;
 $d$;
