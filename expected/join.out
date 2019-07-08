@@ -5304,15 +5304,15 @@ select * from
     lateral (select q1, coalesce(ss1.x,q2) as y from int8_tbl d) ss2
   ) on c.q2 = ss2.q1,
   lateral (select ss2.y offset 0) ss3;
-                                                                                         QUERY PLAN                                                                                         
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                           QUERY PLAN                                                                                           
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Nested Loop
-   Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, (COALESCE(b.q2, '42'::bigint)), d.q1, (COALESCE(COALESCE(b.q2, '42'::bigint), d.q2)), ((COALESCE(COALESCE(b.q2, '42'::bigint), d.q2)))
+   Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, (COALESCE(b.q2, '42'::bigint)), d.q1, (COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2)), ((COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2)))
    ->  Hash Right Join
-         Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(b.q2, '42'::bigint)), (COALESCE(COALESCE(b.q2, '42'::bigint), d.q2))
+         Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(b.q2, '42'::bigint)), (COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2))
          Hash Cond: (d.q1 = c.q2)
          ->  Nested Loop
-               Output: a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(b.q2, '42'::bigint)), (COALESCE(COALESCE(b.q2, '42'::bigint), d.q2))
+               Output: a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(b.q2, '42'::bigint)), (COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2))
                ->  Merge Left Join
                      Output: a.id, a.q1, a.q2, b.q1, (COALESCE(b.q2, '42'::bigint))
                      Merge Cond: (a.q2 = b.q1)
@@ -5328,19 +5328,17 @@ select * from
                            ->  Foreign Scan on public.int8_tbl b
                                  Output: b.q1, COALESCE(b.q2, '42'::bigint)
                                  Remote SQL: SELECT  *  FROM int8_tbl
-               ->  Materialize
-                     Output: d.q1, (COALESCE(COALESCE(b.q2, '42'::bigint), d.q2))
-                     ->  Foreign Scan on public.int8_tbl d
-                           Output: d.q1, COALESCE(COALESCE(b.q2, '42'::bigint), d.q2)
-                           Remote SQL: SELECT  *  FROM int8_tbl
+               ->  Foreign Scan on public.int8_tbl d
+                     Output: d.q1, COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2)
+                     Remote SQL: SELECT  *  FROM int8_tbl
          ->  Hash
                Output: c.id, c.q1, c.q2
                ->  Foreign Scan on public.int8_tbl c
                      Output: c.id, c.q1, c.q2
                      Remote SQL: SELECT  *  FROM int8_tbl
    ->  Result
-         Output: (COALESCE(COALESCE(b.q2, '42'::bigint), d.q2))
-(34 rows)
+         Output: (COALESCE((COALESCE(b.q2, '42'::bigint)), d.q2))
+(32 rows)
 
 -- case that breaks the old ph_may_need optimization
 explain (verbose, costs off)
@@ -5354,16 +5352,16 @@ select c.*,a.*,ss1.q1,ss2.q1,ss3.* from
     lateral (select q1, coalesce(ss1.x,q2) as y from int8_tbl d) ss2
   ) on c.q2 = ss2.q1,
   lateral (select * from int4_tbl i where ss2.y > f1) ss3;
-                                                    QUERY PLAN                                                     
--------------------------------------------------------------------------------------------------------------------
+                                                     QUERY PLAN                                                      
+---------------------------------------------------------------------------------------------------------------------
  Nested Loop
    Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, d.q1, i.f1
-   Join Filter: ((COALESCE(COALESCE(b.q2, (b2.f1)::bigint), d.q2)) > i.f1)
+   Join Filter: ((COALESCE((COALESCE(b.q2, (b2.f1)::bigint)), d.q2)) > i.f1)
    ->  Hash Right Join
-         Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(COALESCE(b.q2, (b2.f1)::bigint), d.q2))
+         Output: c.id, c.q1, c.q2, a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE((COALESCE(b.q2, (b2.f1)::bigint)), d.q2))
          Hash Cond: (d.q1 = c.q2)
          ->  Nested Loop
-               Output: a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE(COALESCE(b.q2, (b2.f1)::bigint), d.q2))
+               Output: a.id, a.q1, a.q2, b.q1, d.q1, (COALESCE((COALESCE(b.q2, (b2.f1)::bigint)), d.q2))
                ->  Merge Left Join
                      Output: a.id, a.q1, a.q2, b.q1, (COALESCE(b.q2, (b2.f1)::bigint))
                      Merge Cond: (a.q2 = b.q1)
@@ -5389,11 +5387,9 @@ select c.*,a.*,ss1.q1,ss2.q1,ss3.* from
                                              ->  Foreign Scan on public.int8_tbl b
                                                    Output: b.q1, b.q2
                                                    Remote SQL: SELECT  *  FROM int8_tbl
-               ->  Materialize
-                     Output: d.q1, (COALESCE(COALESCE(b.q2, (b2.f1)::bigint), d.q2))
-                     ->  Foreign Scan on public.int8_tbl d
-                           Output: d.q1, COALESCE(COALESCE(b.q2, (b2.f1)::bigint), d.q2)
-                           Remote SQL: SELECT  *  FROM int8_tbl
+               ->  Foreign Scan on public.int8_tbl d
+                     Output: d.q1, COALESCE((COALESCE(b.q2, (b2.f1)::bigint)), d.q2)
+                     Remote SQL: SELECT  *  FROM int8_tbl
          ->  Hash
                Output: c.id, c.q1, c.q2
                ->  Foreign Scan on public.int8_tbl c
@@ -5404,7 +5400,7 @@ select c.*,a.*,ss1.q1,ss2.q1,ss3.* from
          ->  Foreign Scan on public.int4_tbl i
                Output: i.f1
                Remote SQL: SELECT  *  FROM int4_tbl
-(48 rows)
+(46 rows)
 
 -- check we don't try to do a unique-ified semijoin with LATERAL
 explain (verbose, costs off)
@@ -5612,7 +5608,6 @@ select t1.b, ss.phv from join_ut1 t1 left join lateral
          ->  Merge Join
                Output: t2.a, LEAST(t1.a, t2.a, t3.a)
                Merge Cond: (t3.b = t2.a)
-               Join Filter: (t1.a = t2.a)
                ->  Sort
                      Output: t3.b, t3.a
                      Sort Key: t3.b
@@ -5624,11 +5619,13 @@ select t1.b, ss.phv from join_ut1 t1 left join lateral
                      ->  Append
                            ->  Foreign Scan on public.join_pt1p1p1 t2
                                  Output: t2.a
+                                 Filter: (t1.a = t2.a)
                                  Remote SQL: SELECT  *  FROM join_pt1p1p1
                            ->  Foreign Scan on public.join_pt1p2 t2_1
                                  Output: t2_1.a
+                                 Filter: (t1.a = t2_1.a)
                                  Remote SQL: SELECT  *  FROM join_pt1p2
-(26 rows)
+(27 rows)
 
 select t1.b, ss.phv from join_ut1 t1 left join lateral
               (select t2.a as t2a, t3.a t3a, least(t1.a, t2.a, t3.a) phv
