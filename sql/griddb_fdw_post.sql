@@ -1851,6 +1851,7 @@ SELECT b, avg(a), max(a), count(*) FROM pagg_tab GROUP BY b HAVING sum(a) < 700 
 -- Clean-up
 RESET enable_partitionwise_aggregate;
 SET client_min_messages to WARNING;
+
 DO $$ DECLARE
     r RECORD;
 BEGIN
