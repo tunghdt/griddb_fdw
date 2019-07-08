@@ -1585,6 +1585,8 @@ select least_agg(variadic array[q1,q2]) from int8_tbl;
  -4567890123456789
 (1 row)
 
+drop aggregate least_agg(variadic items anyarray);
+drop function least_accum(anyelement, variadic anyarray);
 -- test aggregates with common transition functions share the same states
 begin work;
 create type avg_state as (total bigint, count bigint);

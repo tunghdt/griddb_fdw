@@ -1,4 +1,4 @@
-SET client_min_messages TO WARNING;
+--SET client_min_messages TO WARNING;
 CREATE EXTENSION IF NOT EXISTS griddb_fdw;
 DO $d$
     BEGIN
@@ -13,12 +13,12 @@ CREATE USER MAPPING IF NOT EXISTS FOR public SERVER griddb_svr OPTIONS (username
 CREATE USER MAPPING FOR public SERVER griddb_svr2 OPTIONS (username 'admin', password 'testadmin');
 CREATE USER MAPPING FOR public SERVER testserver1 OPTIONS (username 'value', password 'value');
 CREATE SCHEMA "S 1";
-IMPORT FOREIGN SCHEMA public LIMIT TO
+IMPORT FOREIGN SCHEMA griddb_schema LIMIT TO
 	("T0", "T1", "T2", "T3", "T4", ft1, ft2, ft4, ft5, base_tbl,
 	loc1, loc2, loct, loct1, loct2, loct3, loct4, locp1, locp2,
 	fprt1_p1, fprt1_p2, fprt2_p1, fprt2_p2, pagg_tab_p1, pagg_tab_p2, pagg_tab_p3)
 	FROM SERVER griddb_svr INTO "S 1";
-SET client_min_messages to NOTICE;
+--SET client_min_messages to NOTICE;
 -- GridDB containers must be created for this test on GridDB server
 INSERT INTO "S 1"."T1"
 	SELECT id,
@@ -4611,7 +4611,7 @@ FETCH c;
 (1 row)
 
 SELECT * FROM ft1 WHERE 1 / (c1 - 1) > 0;  -- ERROR
-ERROR:  GridDB-API is failed by 150016 at griddb_fdw.c: 2517
+ERROR:  GridDB-API is failed by 150016 at griddb_fdw.c: 2508
   Divide by 0 detected.
 
 ROLLBACK;
@@ -7540,63 +7540,42 @@ delete from rem2;
 -- test IMPORT FOREIGN SCHEMA
 -- ===================================================================
 CREATE SCHEMA import_grid1;
-IMPORT FOREIGN SCHEMA public FROM SERVER griddb_svr INTO import_grid1;
+IMPORT FOREIGN SCHEMA "S 1" LIMIT TO
+	("T0", "T1", "T2", "T3", "T4", ft1, ft2, ft4, ft5, base_tbl,
+	loc1, loc2, loct, loct1, loct2, loct3, loct4, locp1, locp2,
+	fprt1_p1, fprt1_p2, fprt2_p1, fprt2_p2, pagg_tab_p1, pagg_tab_p2, pagg_tab_p3)
+	FROM SERVER griddb_svr INTO import_grid1;
 \det+ import_grid1.*
-                            List of foreign tables
-    Schema    |        Table         |   Server   | FDW options | Description 
---------------+----------------------+------------+-------------+-------------
- import_grid1 | T0                   | griddb_svr |             | 
- import_grid1 | T1                   | griddb_svr |             | 
- import_grid1 | T2                   | griddb_svr |             | 
- import_grid1 | T3                   | griddb_svr |             | 
- import_grid1 | T4                   | griddb_svr |             | 
- import_grid1 | base_tbl             | griddb_svr |             | 
- import_grid1 | department           | griddb_svr |             | 
- import_grid1 | empdata              | griddb_svr |             | 
- import_grid1 | employee             | griddb_svr |             | 
- import_grid1 | evennumbers          | griddb_svr |             | 
- import_grid1 | fprt1_p1             | griddb_svr |             | 
- import_grid1 | fprt1_p2             | griddb_svr |             | 
- import_grid1 | fprt2_p1             | griddb_svr |             | 
- import_grid1 | fprt2_p2             | griddb_svr |             | 
- import_grid1 | ft1                  | griddb_svr |             | 
- import_grid1 | ft2                  | griddb_svr |             | 
- import_grid1 | ft4                  | griddb_svr |             | 
- import_grid1 | ft5                  | griddb_svr |             | 
- import_grid1 | loc1                 | griddb_svr |             | 
- import_grid1 | loc2                 | griddb_svr |             | 
- import_grid1 | locp1                | griddb_svr |             | 
- import_grid1 | locp2                | griddb_svr |             | 
- import_grid1 | loct                 | griddb_svr |             | 
- import_grid1 | loct1                | griddb_svr |             | 
- import_grid1 | loct2                | griddb_svr |             | 
- import_grid1 | loct3                | griddb_svr |             | 
- import_grid1 | loct4                | griddb_svr |             | 
- import_grid1 | numbers              | griddb_svr |             | 
- import_grid1 | pagg_tab_p1          | griddb_svr |             | 
- import_grid1 | pagg_tab_p2          | griddb_svr |             | 
- import_grid1 | pagg_tab_p3          | griddb_svr |             | 
- import_grid1 | shorty               | griddb_svr |             | 
- import_grid1 | type_blob            | griddb_svr |             | 
- import_grid1 | type_bool_array      | griddb_svr |             | 
- import_grid1 | type_boolean         | griddb_svr |             | 
- import_grid1 | type_byte            | griddb_svr |             | 
- import_grid1 | type_byte_array      | griddb_svr |             | 
- import_grid1 | type_double          | griddb_svr |             | 
- import_grid1 | type_double_array    | griddb_svr |             | 
- import_grid1 | type_float           | griddb_svr |             | 
- import_grid1 | type_float_array     | griddb_svr |             | 
- import_grid1 | type_integer         | griddb_svr |             | 
- import_grid1 | type_integer_array   | griddb_svr |             | 
- import_grid1 | type_long            | griddb_svr |             | 
- import_grid1 | type_long_array      | griddb_svr |             | 
- import_grid1 | type_short           | griddb_svr |             | 
- import_grid1 | type_short_array     | griddb_svr |             | 
- import_grid1 | type_string          | griddb_svr |             | 
- import_grid1 | type_string_array    | griddb_svr |             | 
- import_grid1 | type_timestamp       | griddb_svr |             | 
- import_grid1 | type_timestamp_array | griddb_svr |             | 
-(51 rows)
+                       List of foreign tables
+    Schema    |    Table    |   Server   | FDW options | Description 
+--------------+-------------+------------+-------------+-------------
+ import_grid1 | T0          | griddb_svr |             | 
+ import_grid1 | T1          | griddb_svr |             | 
+ import_grid1 | T2          | griddb_svr |             | 
+ import_grid1 | T3          | griddb_svr |             | 
+ import_grid1 | T4          | griddb_svr |             | 
+ import_grid1 | base_tbl    | griddb_svr |             | 
+ import_grid1 | fprt1_p1    | griddb_svr |             | 
+ import_grid1 | fprt1_p2    | griddb_svr |             | 
+ import_grid1 | fprt2_p1    | griddb_svr |             | 
+ import_grid1 | fprt2_p2    | griddb_svr |             | 
+ import_grid1 | ft1         | griddb_svr |             | 
+ import_grid1 | ft2         | griddb_svr |             | 
+ import_grid1 | ft4         | griddb_svr |             | 
+ import_grid1 | ft5         | griddb_svr |             | 
+ import_grid1 | loc1        | griddb_svr |             | 
+ import_grid1 | loc2        | griddb_svr |             | 
+ import_grid1 | locp1       | griddb_svr |             | 
+ import_grid1 | locp2       | griddb_svr |             | 
+ import_grid1 | loct        | griddb_svr |             | 
+ import_grid1 | loct1       | griddb_svr |             | 
+ import_grid1 | loct2       | griddb_svr |             | 
+ import_grid1 | loct3       | griddb_svr |             | 
+ import_grid1 | loct4       | griddb_svr |             | 
+ import_grid1 | pagg_tab_p1 | griddb_svr |             | 
+ import_grid1 | pagg_tab_p2 | griddb_svr |             | 
+ import_grid1 | pagg_tab_p3 | griddb_svr |             | 
+(26 rows)
 
 \d import_grid1.*
                              Foreign table "import_grid1.T0"
@@ -7653,35 +7632,6 @@ Server: griddb_svr
 --------+---------+-----------+----------+---------+-----------------
  a      | integer |           |          |         | (rowkey 'true')
  b      | integer |           |          |         | 
-Server: griddb_svr
-
-                   Foreign table "import_grid1.department"
-     Column      |  Type   | Collation | Nullable | Default |   FDW options   
------------------+---------+-----------+----------+---------+-----------------
- department_id   | integer |           |          |         | (rowkey 'true')
- department_name | text    |           |          |         | 
-Server: griddb_svr
-
-                 Foreign table "import_grid1.empdata"
- Column  |  Type   | Collation | Nullable | Default |   FDW options   
----------+---------+-----------+----------+---------+-----------------
- emp_id  | integer |           |          |         | (rowkey 'true')
- emp_dat | bytea   |           |          |         | 
-Server: griddb_svr
-
-                  Foreign table "import_grid1.employee"
-   Column    |  Type   | Collation | Nullable | Default |   FDW options   
--------------+---------+-----------+----------+---------+-----------------
- emp_id      | integer |           |          |         | (rowkey 'true')
- emp_name    | text    |           |          |         | 
- emp_dept_id | integer |           |          |         | 
-Server: griddb_svr
-
-              Foreign table "import_grid1.evennumbers"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- a      | integer |           |          |         | (rowkey 'true')
- b      | text    |           |          |         | 
 Server: griddb_svr
 
                 Foreign table "import_grid1.fprt1_p1"
@@ -7819,13 +7769,6 @@ Server: griddb_svr
  b      | text    |           |          |         | 
 Server: griddb_svr
 
-                Foreign table "import_grid1.numbers"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- a      | integer |           |          |         | (rowkey 'true')
- b      | text    |           |          |         | 
-Server: griddb_svr
-
               Foreign table "import_grid1.pagg_tab_p1"
  Column |  Type   | Collation | Nullable | Default |   FDW options   
 --------+---------+-----------+----------+---------+-----------------
@@ -7853,149 +7796,9 @@ Server: griddb_svr
  c      | text    |           |          |         | 
 Server: griddb_svr
 
-                 Foreign table "import_grid1.shorty"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- id     | integer |           |          |         | (rowkey 'true')
- c      | text    |           |          |         | 
-Server: griddb_svr
-
-               Foreign table "import_grid1.type_blob"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | bytea   |           |          |         | 
-Server: griddb_svr
-
-             Foreign table "import_grid1.type_bool_array"
- Column |   Type    | Collation | Nullable | Default |   FDW options   
---------+-----------+-----------+----------+---------+-----------------
- col1   | integer   |           |          |         | (rowkey 'true')
- col2   | boolean[] |           |          |         | 
-Server: griddb_svr
-
-              Foreign table "import_grid1.type_boolean"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | boolean |           |          |         | 
-Server: griddb_svr
-
-                  Foreign table "import_grid1.type_byte"
- Column |     Type     | Collation | Nullable | Default |   FDW options   
---------+--------------+-----------+----------+---------+-----------------
- col1   | integer      |           |          |         | (rowkey 'true')
- col2   | character(1) |           |          |         | 
-Server: griddb_svr
-
-                Foreign table "import_grid1.type_byte_array"
- Column |      Type      | Collation | Nullable | Default |   FDW options   
---------+----------------+-----------+----------+---------+-----------------
- col1   | integer        |           |          |         | (rowkey 'true')
- col2   | character(1)[] |           |          |         | 
-Server: griddb_svr
-
-                   Foreign table "import_grid1.type_double"
- Column |       Type       | Collation | Nullable | Default |   FDW options   
---------+------------------+-----------+----------+---------+-----------------
- col1   | integer          |           |          |         | (rowkey 'true')
- col2   | double precision |           |          |         | 
-Server: griddb_svr
-
-                 Foreign table "import_grid1.type_double_array"
- Column |        Type        | Collation | Nullable | Default |   FDW options   
---------+--------------------+-----------+----------+---------+-----------------
- col1   | integer            |           |          |         | (rowkey 'true')
- col2   | double precision[] |           |          |         | 
-Server: griddb_svr
-
-               Foreign table "import_grid1.type_float"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | real    |           |          |         | 
-Server: griddb_svr
-
-            Foreign table "import_grid1.type_float_array"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | real[]  |           |          |         | 
-Server: griddb_svr
-
-              Foreign table "import_grid1.type_integer"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | integer |           |          |         | 
-Server: griddb_svr
-
-            Foreign table "import_grid1.type_integer_array"
- Column |   Type    | Collation | Nullable | Default |   FDW options   
---------+-----------+-----------+----------+---------+-----------------
- col1   | integer   |           |          |         | (rowkey 'true')
- col2   | integer[] |           |          |         | 
-Server: griddb_svr
-
-               Foreign table "import_grid1.type_long"
- Column |  Type  | Collation | Nullable | Default |   FDW options   
---------+--------+-----------+----------+---------+-----------------
- col1   | bigint |           |          |         | (rowkey 'true')
- col2   | bigint |           |          |         | 
-Server: griddb_svr
-
-             Foreign table "import_grid1.type_long_array"
- Column |   Type   | Collation | Nullable | Default |   FDW options   
---------+----------+-----------+----------+---------+-----------------
- col1   | integer  |           |          |         | (rowkey 'true')
- col2   | bigint[] |           |          |         | 
-Server: griddb_svr
-
-               Foreign table "import_grid1.type_short"
- Column |   Type   | Collation | Nullable | Default |   FDW options   
---------+----------+-----------+----------+---------+-----------------
- col1   | integer  |           |          |         | (rowkey 'true')
- col2   | smallint |           |          |         | 
-Server: griddb_svr
-
-             Foreign table "import_grid1.type_short_array"
- Column |    Type    | Collation | Nullable | Default |   FDW options   
---------+------------+-----------+----------+---------+-----------------
- col1   | integer    |           |          |         | (rowkey 'true')
- col2   | smallint[] |           |          |         | 
-Server: griddb_svr
-
-             Foreign table "import_grid1.type_string"
- Column | Type | Collation | Nullable | Default |   FDW options   
---------+------+-----------+----------+---------+-----------------
- col1   | text |           |          |         | (rowkey 'true')
- col2   | text |           |          |         | 
-Server: griddb_svr
-
-           Foreign table "import_grid1.type_string_array"
- Column |  Type   | Collation | Nullable | Default |   FDW options   
---------+---------+-----------+----------+---------+-----------------
- col1   | integer |           |          |         | (rowkey 'true')
- col2   | text[]  |           |          |         | 
-Server: griddb_svr
-
-                       Foreign table "import_grid1.type_timestamp"
- Column |            Type             | Collation | Nullable | Default |   FDW options   
---------+-----------------------------+-----------+----------+---------+-----------------
- col1   | timestamp without time zone |           |          |         | (rowkey 'true')
- col2   | timestamp without time zone |           |          |         | 
-Server: griddb_svr
-
-                     Foreign table "import_grid1.type_timestamp_array"
- Column |             Type              | Collation | Nullable | Default |   FDW options   
---------+-------------------------------+-----------+----------+---------+-----------------
- col1   | integer                       |           |          |         | (rowkey 'true')
- col2   | timestamp without time zone[] |           |          |         | 
-Server: griddb_svr
-
 -- Check LIMIT TO and EXCEPT
 CREATE SCHEMA import_grid2;
-IMPORT FOREIGN SCHEMA public LIMIT TO ("T1", loct, nonesuch)
+IMPORT FOREIGN SCHEMA griddb_schema LIMIT TO ("T1", loct, nonesuch)
   FROM SERVER griddb_svr INTO import_grid2;
 \det+ import_grid2.*
                     List of foreign tables
@@ -8005,170 +7808,12 @@ IMPORT FOREIGN SCHEMA public LIMIT TO ("T1", loct, nonesuch)
  import_grid2 | loct  | griddb_svr |             | 
 (2 rows)
 
-IMPORT FOREIGN SCHEMA public EXCEPT ("T1", loct, nonesuch)
-  FROM SERVER griddb_svr INTO import_grid2;
-\det+ import_grid2.*
-                            List of foreign tables
-    Schema    |        Table         |   Server   | FDW options | Description 
---------------+----------------------+------------+-------------+-------------
- import_grid2 | T0                   | griddb_svr |             | 
- import_grid2 | T1                   | griddb_svr |             | 
- import_grid2 | T2                   | griddb_svr |             | 
- import_grid2 | T3                   | griddb_svr |             | 
- import_grid2 | T4                   | griddb_svr |             | 
- import_grid2 | base_tbl             | griddb_svr |             | 
- import_grid2 | department           | griddb_svr |             | 
- import_grid2 | empdata              | griddb_svr |             | 
- import_grid2 | employee             | griddb_svr |             | 
- import_grid2 | evennumbers          | griddb_svr |             | 
- import_grid2 | fprt1_p1             | griddb_svr |             | 
- import_grid2 | fprt1_p2             | griddb_svr |             | 
- import_grid2 | fprt2_p1             | griddb_svr |             | 
- import_grid2 | fprt2_p2             | griddb_svr |             | 
- import_grid2 | ft1                  | griddb_svr |             | 
- import_grid2 | ft2                  | griddb_svr |             | 
- import_grid2 | ft4                  | griddb_svr |             | 
- import_grid2 | ft5                  | griddb_svr |             | 
- import_grid2 | loc1                 | griddb_svr |             | 
- import_grid2 | loc2                 | griddb_svr |             | 
- import_grid2 | locp1                | griddb_svr |             | 
- import_grid2 | locp2                | griddb_svr |             | 
- import_grid2 | loct                 | griddb_svr |             | 
- import_grid2 | loct1                | griddb_svr |             | 
- import_grid2 | loct2                | griddb_svr |             | 
- import_grid2 | loct3                | griddb_svr |             | 
- import_grid2 | loct4                | griddb_svr |             | 
- import_grid2 | numbers              | griddb_svr |             | 
- import_grid2 | pagg_tab_p1          | griddb_svr |             | 
- import_grid2 | pagg_tab_p2          | griddb_svr |             | 
- import_grid2 | pagg_tab_p3          | griddb_svr |             | 
- import_grid2 | shorty               | griddb_svr |             | 
- import_grid2 | type_blob            | griddb_svr |             | 
- import_grid2 | type_bool_array      | griddb_svr |             | 
- import_grid2 | type_boolean         | griddb_svr |             | 
- import_grid2 | type_byte            | griddb_svr |             | 
- import_grid2 | type_byte_array      | griddb_svr |             | 
- import_grid2 | type_double          | griddb_svr |             | 
- import_grid2 | type_double_array    | griddb_svr |             | 
- import_grid2 | type_float           | griddb_svr |             | 
- import_grid2 | type_float_array     | griddb_svr |             | 
- import_grid2 | type_integer         | griddb_svr |             | 
- import_grid2 | type_integer_array   | griddb_svr |             | 
- import_grid2 | type_long            | griddb_svr |             | 
- import_grid2 | type_long_array      | griddb_svr |             | 
- import_grid2 | type_short           | griddb_svr |             | 
- import_grid2 | type_short_array     | griddb_svr |             | 
- import_grid2 | type_string          | griddb_svr |             | 
- import_grid2 | type_string_array    | griddb_svr |             | 
- import_grid2 | type_timestamp       | griddb_svr |             | 
- import_grid2 | type_timestamp_array | griddb_svr |             | 
-(51 rows)
-
+-- IMPORT FOREIGN SCHEMA griddb_schema EXCEPT ("T1", loct, nonesuch)
+--  FROM SERVER griddb_svr INTO import_grid2;
+-- \det+ import_grid2.*
 -- Assorted error cases
-IMPORT FOREIGN SCHEMA public FROM SERVER griddb_svr INTO import_grid2;
-NOTICE:  relation "base_tbl" already exists, skipping
-NOTICE:  relation "fprt1_p2" already exists, skipping
-NOTICE:  relation "empdata" already exists, skipping
-NOTICE:  relation "department" already exists, skipping
-NOTICE:  relation "locp2" already exists, skipping
-NOTICE:  relation "T2" already exists, skipping
-NOTICE:  relation "loct2" already exists, skipping
-NOTICE:  relation "pagg_tab_p3" already exists, skipping
-NOTICE:  relation "type_string" already exists, skipping
-NOTICE:  relation "type_float_array" already exists, skipping
-NOTICE:  relation "loct3" already exists, skipping
-NOTICE:  relation "pagg_tab_p2" already exists, skipping
-NOTICE:  relation "T3" already exists, skipping
-NOTICE:  relation "type_boolean" already exists, skipping
-NOTICE:  relation "employee" already exists, skipping
-NOTICE:  relation "T0" already exists, skipping
-NOTICE:  relation "type_short_array" already exists, skipping
-NOTICE:  relation "type_double_array" already exists, skipping
-NOTICE:  relation "pagg_tab_p1" already exists, skipping
-NOTICE:  relation "evennumbers" already exists, skipping
-NOTICE:  relation "type_timestamp" already exists, skipping
-NOTICE:  relation "type_string_array" already exists, skipping
-NOTICE:  relation "type_byte_array" already exists, skipping
-NOTICE:  relation "locp1" already exists, skipping
-NOTICE:  relation "type_long_array" already exists, skipping
-NOTICE:  relation "type_timestamp_array" already exists, skipping
-NOTICE:  relation "loct1" already exists, skipping
-NOTICE:  relation "T1" already exists, skipping
-NOTICE:  relation "T4" already exists, skipping
-NOTICE:  relation "loct4" already exists, skipping
-NOTICE:  relation "fprt1_p1" already exists, skipping
-NOTICE:  relation "shorty" already exists, skipping
-NOTICE:  relation "type_blob" already exists, skipping
-NOTICE:  relation "ft4" already exists, skipping
-NOTICE:  relation "ft1" already exists, skipping
-NOTICE:  relation "fprt2_p1" already exists, skipping
-NOTICE:  relation "ft5" already exists, skipping
-NOTICE:  relation "type_short" already exists, skipping
-NOTICE:  relation "type_double" already exists, skipping
-NOTICE:  relation "loc2" already exists, skipping
-NOTICE:  relation "type_long" already exists, skipping
-NOTICE:  relation "type_float" already exists, skipping
-NOTICE:  relation "loc1" already exists, skipping
-NOTICE:  relation "type_bool_array" already exists, skipping
-NOTICE:  relation "type_byte" already exists, skipping
-NOTICE:  relation "type_integer_array" already exists, skipping
-NOTICE:  relation "fprt2_p2" already exists, skipping
-NOTICE:  relation "ft2" already exists, skipping
-NOTICE:  relation "numbers" already exists, skipping
-NOTICE:  relation "loct" already exists, skipping
-NOTICE:  relation "type_integer" already exists, skipping
-IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO import_grid2; -- same as 'public'
-NOTICE:  relation "base_tbl" already exists, skipping
-NOTICE:  relation "fprt1_p2" already exists, skipping
-NOTICE:  relation "empdata" already exists, skipping
-NOTICE:  relation "department" already exists, skipping
-NOTICE:  relation "locp2" already exists, skipping
-NOTICE:  relation "T2" already exists, skipping
-NOTICE:  relation "loct2" already exists, skipping
-NOTICE:  relation "pagg_tab_p3" already exists, skipping
-NOTICE:  relation "type_string" already exists, skipping
-NOTICE:  relation "type_float_array" already exists, skipping
-NOTICE:  relation "loct3" already exists, skipping
-NOTICE:  relation "pagg_tab_p2" already exists, skipping
-NOTICE:  relation "T3" already exists, skipping
-NOTICE:  relation "type_boolean" already exists, skipping
-NOTICE:  relation "employee" already exists, skipping
-NOTICE:  relation "T0" already exists, skipping
-NOTICE:  relation "type_short_array" already exists, skipping
-NOTICE:  relation "type_double_array" already exists, skipping
-NOTICE:  relation "pagg_tab_p1" already exists, skipping
-NOTICE:  relation "evennumbers" already exists, skipping
-NOTICE:  relation "type_timestamp" already exists, skipping
-NOTICE:  relation "type_string_array" already exists, skipping
-NOTICE:  relation "type_byte_array" already exists, skipping
-NOTICE:  relation "locp1" already exists, skipping
-NOTICE:  relation "type_long_array" already exists, skipping
-NOTICE:  relation "type_timestamp_array" already exists, skipping
-NOTICE:  relation "loct1" already exists, skipping
-NOTICE:  relation "T1" already exists, skipping
-NOTICE:  relation "T4" already exists, skipping
-NOTICE:  relation "loct4" already exists, skipping
-NOTICE:  relation "fprt1_p1" already exists, skipping
-NOTICE:  relation "shorty" already exists, skipping
-NOTICE:  relation "type_blob" already exists, skipping
-NOTICE:  relation "ft4" already exists, skipping
-NOTICE:  relation "ft1" already exists, skipping
-NOTICE:  relation "fprt2_p1" already exists, skipping
-NOTICE:  relation "ft5" already exists, skipping
-NOTICE:  relation "type_short" already exists, skipping
-NOTICE:  relation "type_double" already exists, skipping
-NOTICE:  relation "loc2" already exists, skipping
-NOTICE:  relation "type_long" already exists, skipping
-NOTICE:  relation "type_float" already exists, skipping
-NOTICE:  relation "loc1" already exists, skipping
-NOTICE:  relation "type_bool_array" already exists, skipping
-NOTICE:  relation "type_byte" already exists, skipping
-NOTICE:  relation "type_integer_array" already exists, skipping
-NOTICE:  relation "fprt2_p2" already exists, skipping
-NOTICE:  relation "ft2" already exists, skipping
-NOTICE:  relation "numbers" already exists, skipping
-NOTICE:  relation "loct" already exists, skipping
-NOTICE:  relation "type_integer" already exists, skipping
+-- IMPORT FOREIGN SCHEMA griddb_schema FROM SERVER griddb_svr INTO import_grid2;
+-- IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO import_grid2; -- same as 'public'
 IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO notthere;
 ERROR:  schema "notthere" does not exist
 IMPORT FOREIGN SCHEMA nonesuch FROM SERVER nowhere INTO notthere;
@@ -8532,7 +8177,7 @@ DO $$ DECLARE
     r RECORD;
 BEGIN
     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
-        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename);
     END LOOP;
 END $$;
 -- Drop all foreign tables
@@ -8543,4 +8188,4 @@ DROP SERVER griddb_svr CASCADE;
 DROP SERVER griddb_svr2 CASCADE;
 DROP SERVER testserver1 CASCADE;
 DROP EXTENSION griddb_fdw CASCADE;
-DROP SCHEMA public CASCADE;
+SET client_min_messages to NOTICE;

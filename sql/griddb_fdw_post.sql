@@ -1,4 +1,4 @@
-SET client_min_messages TO WARNING;
+--SET client_min_messages TO WARNING;
 CREATE EXTENSION IF NOT EXISTS griddb_fdw;
 DO $d$
     BEGIN
@@ -14,12 +14,12 @@ CREATE USER MAPPING FOR public SERVER griddb_svr2 OPTIONS (username 'admin', pas
 CREATE USER MAPPING FOR public SERVER testserver1 OPTIONS (username 'value', password 'value');
 
 CREATE SCHEMA "S 1";
-IMPORT FOREIGN SCHEMA public LIMIT TO
+IMPORT FOREIGN SCHEMA griddb_schema LIMIT TO
 	("T0", "T1", "T2", "T3", "T4", ft1, ft2, ft4, ft5, base_tbl,
 	loc1, loc2, loct, loct1, loct2, loct3, loct4, locp1, locp2,
 	fprt1_p1, fprt1_p2, fprt2_p1, fprt2_p2, pagg_tab_p1, pagg_tab_p2, pagg_tab_p3)
 	FROM SERVER griddb_svr INTO "S 1";
-SET client_min_messages to NOTICE;
+--SET client_min_messages to NOTICE;
 
 -- GridDB containers must be created for this test on GridDB server
 INSERT INTO "S 1"."T1"
@@ -1726,22 +1726,26 @@ delete from rem2;
 -- ===================================================================
 
 CREATE SCHEMA import_grid1;
-IMPORT FOREIGN SCHEMA public FROM SERVER griddb_svr INTO import_grid1;
+IMPORT FOREIGN SCHEMA "S 1" LIMIT TO
+	("T0", "T1", "T2", "T3", "T4", ft1, ft2, ft4, ft5, base_tbl,
+	loc1, loc2, loct, loct1, loct2, loct3, loct4, locp1, locp2,
+	fprt1_p1, fprt1_p2, fprt2_p1, fprt2_p2, pagg_tab_p1, pagg_tab_p2, pagg_tab_p3)
+	FROM SERVER griddb_svr INTO import_grid1;
 \det+ import_grid1.*
 \d import_grid1.*
 
 -- Check LIMIT TO and EXCEPT
 CREATE SCHEMA import_grid2;
-IMPORT FOREIGN SCHEMA public LIMIT TO ("T1", loct, nonesuch)
+IMPORT FOREIGN SCHEMA griddb_schema LIMIT TO ("T1", loct, nonesuch)
   FROM SERVER griddb_svr INTO import_grid2;
 \det+ import_grid2.*
-IMPORT FOREIGN SCHEMA public EXCEPT ("T1", loct, nonesuch)
-  FROM SERVER griddb_svr INTO import_grid2;
-\det+ import_grid2.*
+-- IMPORT FOREIGN SCHEMA griddb_schema EXCEPT ("T1", loct, nonesuch)
+--  FROM SERVER griddb_svr INTO import_grid2;
+-- \det+ import_grid2.*
 
 -- Assorted error cases
-IMPORT FOREIGN SCHEMA public FROM SERVER griddb_svr INTO import_grid2;
-IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO import_grid2; -- same as 'public'
+-- IMPORT FOREIGN SCHEMA griddb_schema FROM SERVER griddb_svr INTO import_grid2;
+-- IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO import_grid2; -- same as 'public'
 IMPORT FOREIGN SCHEMA nonesuch FROM SERVER griddb_svr INTO notthere;
 IMPORT FOREIGN SCHEMA nonesuch FROM SERVER nowhere INTO notthere;
 
@@ -1852,7 +1856,7 @@ DO $$ DECLARE
     r RECORD;
 BEGIN
     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
-        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename);
     END LOOP;
 END $$;
 
@@ -1864,4 +1868,4 @@ DROP SERVER griddb_svr CASCADE;
 DROP SERVER griddb_svr2 CASCADE;
 DROP SERVER testserver1 CASCADE;
 DROP EXTENSION griddb_fdw CASCADE;
-DROP SCHEMA public CASCADE;
+SET client_min_messages to NOTICE;

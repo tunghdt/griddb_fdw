@@ -719,6 +719,8 @@ create aggregate least_agg(variadic items anyarray) (
 select least_agg(q1,q2) from int8_tbl;
 select least_agg(variadic array[q1,q2]) from int8_tbl;
 
+drop aggregate least_agg(variadic items anyarray);
+drop function least_accum(anyelement, variadic anyarray);
 
 -- test aggregates with common transition functions share the same states
 begin work;
